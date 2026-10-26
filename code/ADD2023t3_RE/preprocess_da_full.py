@@ -6,7 +6,7 @@ from tqdm import tqdm
 from transformers import Wav2Vec2ForCTC, Wav2Vec2Processor, Wav2Vec2Tokenizer,Wav2Vec2Config
 from transformers import Wav2Vec2Model, Wav2Vec2FeatureExtractor
 
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 import numpy
 import random
 import soundfile
@@ -80,13 +80,13 @@ dev_num = 7200
 
 
 part_ = 'train'
-asvspoof_raw = dataset.ADD2023("/data2/Track3",
-                                "/data2/Track3/label/", part=part_)
-target_dir = os.path.join("/data2/xyk/ADD2023t3/preprocess_xls-r-5-1", part_,
+asvspoof_raw = dataset.ADD2023("D:/REFD/data/ADD2023T3/Track3",
+                                "D:/REFD/data/ADD2023T3/Track3/label/", part=part_)
+target_dir = os.path.join("D:/REFD/data/ADD2023T3/preprocess_xls-r-5-1", part_,
                             "xls-r-5-1")
-config = Wav2Vec2Config.from_json_file("/data3/xyk/huggingface/wav2vec2-xls-r-300m/config.json")                          
-processor = Wav2Vec2FeatureExtractor.from_pretrained("/data3/xyk/huggingface/wav2vec2-xls-r-300m/")
-model = Wav2Vec2Model.from_pretrained("/data3/xyk/huggingface/wav2vec2-xls-r-300m/").cuda()
+config = Wav2Vec2Config.from_json_file("D:/REFD/models/wav2vec2-xls-r-300m/config.json")                          
+processor = Wav2Vec2FeatureExtractor.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m/")
+model = Wav2Vec2Model.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m/").cuda()
 if not os.path.exists(target_dir):
     os.makedirs(target_dir)
 model.config.output_hidden_states = True
@@ -182,13 +182,13 @@ for process_type in ["original", "add_rev", "add_speech", "add_music", "add_nois
         print("Done for", process_type)
 
 part_ = 'dev'
-asvspoof_raw = dataset.ADD2023("/data2/Track3",
-                                "/data2/Track3/label/", part=part_)
-target_dir = os.path.join("/data2/xyk/ADD2023t3/preprocess_xls-r-5-1", part_,
+asvspoof_raw = dataset.ADD2023("D:/REFD/data/ADD2023T3/Track3",
+                                "D:/REFD/data/ADD2023T3/Track3/label/", part=part_)
+target_dir = os.path.join("D:/REFD/data/ADD2023T3/preprocess_xls-r-5-1", part_,
                             "xls-r-5-1")
-config = Wav2Vec2Config.from_json_file("/data3/xyk/huggingface/wav2vec2-xls-r-300m/config.json")                          
-processor = Wav2Vec2FeatureExtractor.from_pretrained("/data3/xyk/huggingface/wav2vec2-xls-r-300m/")
-model = Wav2Vec2Model.from_pretrained("/data3/xyk/huggingface/wav2vec2-xls-r-300m/").cuda()
+config = Wav2Vec2Config.from_json_file("D:/REFD/models/wav2vec2-xls-r-300m/config.json")                          
+processor = Wav2Vec2FeatureExtractor.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m/")
+model = Wav2Vec2Model.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m/").cuda()
 if not os.path.exists(target_dir):
     os.makedirs(target_dir)
 model.config.output_hidden_states = True
@@ -286,13 +286,13 @@ for process_type in ["original", "add_rev", "add_speech", "add_music", "add_nois
 
 
 part_ = 'eval'
-asvspoof_raw = dataset.ADD2023("/data2/Track3",
-                                "/data2/Track3/label/", part=part_)
-target_dir = os.path.join("/data2/xyk/ADD2023t3/preprocess_xls-r-5-1", part_,
+asvspoof_raw = dataset.ADD2023("D:/REFD/data/ADD2023T3/Track3",
+                                "D:/REFD/data/ADD2023T3/Track3/label/", part=part_)
+target_dir = os.path.join("D:/REFD/data/ADD2023T3/preprocess_xls-r-5-1", part_,
                             "xls-r-5-1")
-config = Wav2Vec2Config.from_json_file("/data3/xyk/huggingface/wav2vec2-xls-r-300m/config.json")                          
-processor = Wav2Vec2FeatureExtractor.from_pretrained("/data3/xyk/huggingface/wav2vec2-xls-r-300m/")
-model = Wav2Vec2Model.from_pretrained("/data3/xyk/huggingface/wav2vec2-xls-r-300m/").cuda()
+config = Wav2Vec2Config.from_json_file("D:/REFD/models/wav2vec2-xls-r-300m/config.json")                          
+processor = Wav2Vec2FeatureExtractor.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m/")
+model = Wav2Vec2Model.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m/").cuda()
 if not os.path.exists(target_dir):
     os.makedirs(target_dir)
 model.config.output_hidden_states = True

@@ -83,7 +83,7 @@ class ADD2023(Dataset):
         self.part = part
         self.path_to_audio = os.path.join(self.ptd, self.part + '/wav')
         self.path_to_protocol = path_to_protocol
-        protocol = os.path.join(os.path.join(self.path_to_protocol, self.part + '.txt'))
+        protocol = os.path.join(self.ptd, self.part, 'label.txt')
         self.label = {"0": 0, "1": 1, "2": 2, "3": 3, "4": 4, "5": 5, "6": 6}
         with open(protocol, 'r') as f:
             audio_info = [info.strip().split() for info in f.readlines()]

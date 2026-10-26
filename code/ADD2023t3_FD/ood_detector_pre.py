@@ -16,7 +16,7 @@ def init():
                         default='./models/try/')
     parser.add_argument('-s', '--score_dir', type=str, help="folder path for writing score",
                         default='./scores')
-    parser.add_argument("--gpu", type=str, help="GPU index", default="1")
+    parser.add_argument("--gpu", type=str, help="GPU index", default="0")
     args = parser.parse_args()
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
@@ -33,11 +33,11 @@ def test_on_ADD2023(feat_model_path, output_score_path, model_name):
     txt_file_name = '/result/result_FD.txt'
     
     # Load Wav2Vec2 models
-    processor = Wav2Vec2FeatureExtractor.from_pretrained("facebook/wav2vec2-xls-r-300m")
-    model = Wav2Vec2Model.from_pretrained("facebook/wav2vec2-xls-r-300m").to(device)
+    processor = Wav2Vec2FeatureExtractor.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m")
+    model = Wav2Vec2Model.from_pretrained("D:/REFD/models/wav2vec2-xls-r-300m").to(device)
     
     # Train
-    traindataset = ADD2023da('LA', '/data2/xyk/ADD2023t3/preprocess_xls-r-5-1', 'train', 'xls-r-5-1', pad_chop=False)
+    traindataset = ADD2023da('LA', 'D:/REFD/data/ADD2023T3/preprocess_xls-r-5-1', 'train', 'xls-r-5-1', pad_chop=False)
     trainDataLoader = DataLoader(traindataset, batch_size=1, shuffle=False, num_workers=8)
 
     trianfeas, trainlogits, trainlabels = [], [], []
@@ -57,7 +57,7 @@ def test_on_ADD2023(feat_model_path, output_score_path, model_name):
     torch.save({"feas": trianfeas, "logits": trainlogits, "labels": trainlabels}, './ood_step/traindict.pt')
 
     # Eval
-    evaldataset = ADD2023da_eval('LA', '/data2/xyk/ADD2023t3/preprocess_xls-r-5-1', 'eval', 'xls-r-5-1', pad_chop=False)
+    evaldataset = ADD2023da_eval('LA', 'D:/REFD/data/ADD2023T3/preprocess_xls-r-5-1', 'eval', 'xls-r-5-1', pad_chop=False)
     evalDataLoader = DataLoader(evaldataset, batch_size=1, shuffle=False, num_workers=8)
 
     evalfeas, evallogits, evallabels = [], [], []

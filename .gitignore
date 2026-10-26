@@ -1,0 +1,14 @@
+# 数据集与预训练模型（大文件，本地下载，不入库）
+data/
+models/
+
+# Python 缓存
+__pycache__/
+*.pyc
+*.pyo
+
+# 复现运行产物
+result/
+ood_step/
+scores/
+*.pt

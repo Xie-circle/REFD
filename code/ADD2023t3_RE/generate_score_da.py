@@ -15,7 +15,7 @@ def init():
     parser = argparse.ArgumentParser("load model scores")
     parser.add_argument('--model_folder', type=str, help="directory for pretrained model",
                         default='./models/try/')
-    parser.add_argument("--gpu", type=str, help="GPU index", default="5")
+    parser.add_argument("--gpu", type=str, help="GPU index", default="0")
     args = parser.parse_args()
 
     os.environ["CUDA_VISIBLE_DEVICES"] = args.gpu
@@ -59,7 +59,7 @@ def test_on_ADD2023t3_re(task, feat_model_path, output_score_path):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model1 = torch.load(feat_model_path)
 
-    test_set = ADD2023da_eval("LA", '/data2/xyk/ADD2023t3/preprocess_xls-r-5-1', 'eval', "xls-r-5-1", pad_chop=False)
+    test_set = ADD2023da_eval("LA", 'D:/REFD/data/ADD2023T3/preprocess_xls-r-5-1', 'eval', "xls-r-5-1", pad_chop=False)
     testDataLoader = DataLoader(test_set, batch_size=1, shuffle=False, num_workers=8)
     model1.eval()
 

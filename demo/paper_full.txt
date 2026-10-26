@@ -1,0 +1,535 @@
+ 
+ Generalized Source Tracing: Detecting Novel Audio Deepfake Algorithm with Real Emphasis and Fake Dispersion strategy 
+ Skip to main content 
+ Report GitHub Issue 
+ × 
+ Title: 
+ Content selection saved. Describe the issue below: 
+ Description: 
+ Submit without GitHub 
+ Submit in GitHub 
+ Why HTML? 
+ Report Issue 
+ Back to Abstract 
+ Download PDF 
+ Contents 
+ Reading mode 
+ Colour theme 
+ Abstract 
+ 1 Introduction 
+ 2 Method 
+ 2.1 Backbone 
+ 2.2 Real Emphasis Training Stage 
+ 2.3 Fake dispersion Training Stage 
+ 2.4 Inference Stage 
+ 3 Experimental Setup 
+ 3.1 Dataset 
+ 3.2 Implementation Details 
+ 4 Results and Analyze 
+ 4.1 Results in real emphasis inference stage 
+ 4.2 Results in fake dispersion inference stage 
+ 4.3 Results for different OOD detectors 
+ 4.4 Compared to one-stage approach 
+ 4.5 Compared to state-of-the-art methods 
+ 5 Conclusion 
+ 6 Acknowledgements 
+ References 
+ License: CC BY-NC-ND 4.0
+arXiv:2406.03240v1 [cs.SD] 05 Jun 2024 
+ Generalized Source Tracing: Detecting Novel Audio Deepfake Algorithm with Real Emphasis and Fake Dispersion strategy 
+ Yuankun Xie 
+ Ruibo Fu 
+ Zhengqi Wen 
+ Zhiyong Wang 
+ Xiaopeng Wang 
+ Haonnan Cheng 
+ Long Ye 
+ Jianhua Tao 
+ Abstract 
+ With the proliferation of deepfake audio, there is an urgent need to investigate their attribution. Current source tracing methods can effectively distinguish in-distribution (ID) categories. However, the rapid evolution of deepfake algorithms poses a critical challenge in the accurate identification of out-of-distribution (OOD) novel deepfake algorithms. In this paper, we propose Real Emphasis and Fake Dispersion (REFD) strategy for audio deepfake algorithm recognition, demonstrating its effectiveness in discriminating ID samples while identifying OOD samples. For effective OOD detection, we first explore current post-hoc OOD methods and propose NSD, a novel OOD approach in identifying novel deepfake algorithms through the similarity consideration of both feature and logits scores. REFD achieves 86.83% F 1 {F}_{1} -score as a single system in Audio Deepfake Detection Challenge 2023 Track3, showcasing its state-of-the-art performance. 
+ keywords audio deepfake algorithm recognition, out-of-distribution detection, audio deepfake detection 
+ † † address: 
+ 1 State Key Laboratory of Media Convergence and Communication, Communication University of China
+ 2 Institute of Automation, Chinese Academy of Sciences
+ 3 School of Artificial Intelligence, Chinese Academy of Sciences
+ 4 Department of Automation and Beijing National Research Center for Information Science and Technology, Tsinghua University † † email: {xieyuankun,haonancheng}@cuc.edu.cn,ruibo.fu@nlpr.ia.ac.cn. 1 1 footnotetext: Corresponding author. 
+ 1 Introduction 
+ In recent years, there has been rapid advancement in the field of text-to-speech (TTS) [ 1 , 2 ] and voice conversion (VC) [ 3 , 4 ] , which called deepfake audio. Diverse endeavors and competitions, such as ASVspoof [ 5 , 6 ] and Audio Deepfake Detection challenge [ 7 , 8 ] , have been instituted to promote research aimed at developing deepfake countermeasure solutions [ 9 ] . Current research has demonstrated that in publicly datasets, binary classification tasks of real and fake audio can achieve an Equal Error Rate (EER) around 0.1% [ 10 ] . However, only real/fake classification is not the end. Law enforcement agencies often need to determine the source of deepfake audio for legal rulings. Furthermore, for developers of generative models, it is crucial to trace the source of deepfake audio to protect the intellectual property of their algorithms. Therefore, it is significant to recognize audio deepfake algorithm. 
+ Recent approaches in the field of Audio Deepfake Algorithm Recognition (ADAR) focus on in-distribution (ID) classification [ 11 , 12 , 13 ] . However, with the evolution of the deepfake algorithm, distinguishing novel out-of-distribution (OOD) deepfake categories has become increasingly crucial. Recently, a novel challenge in the realm of ADAR, namely Audio Deepfake Detection Challenge 2023 Track3 (ADD2023T3) [ 8 ] , was held to address this issue. This task holds significant importance as it entails not only the detection of diverse fake audio types but also encompasses the presence of unknown generative algorithms during the testing stage. This demands detectors to accurately distinguish categories within the ID while also identifying OOD categories. 
+ We observed that state-of-the-art approaches [ 14 , 15 , 16 , 17 , 18 ] in this track commonly employ multiple classifiers for the multi-classification of real and fake categories using various features and backbones. During testing, OOD methods are utilized to detect unknown classes, and different classifiers scores are fused for a evaluation. We called these one-stage methods. 
+ These one-stage approaches raises some concerns. Firstly, for a classifier, the focus on features differs between distinguishing real and fake and distinguishing among different fake classes. Training on one-stage methods poses a significantly difficulty for the classifier. Secondly,
+in one-stage methods, the genuine class is within ID, which makes it challenging to determine the OOD threshold. In ADD2023T3, OOD samples only generated from the unknown deepfake algorithm. Regarding the ID real class, the OOD data represents a semantic (real or fake) shift. However, for ID fake class, the unknown fake class represents a covariate (fake distribution) shift. Both real and fake class in ID makes it challenging to establish one clear determination threshold for detecting unknown deepfake method.
+Lastly, the fusion in the competition, although addressing the different emphases of various features in distinguishing classes, often requires experimenting with different weights on the test set for adaptability, which is inefficient. 
+ Figure 1: The entire pipeline of our proposed Real Emphasis and Fake Dispersion (REFD) method. 
+ In this paper, we propose a dual-stage approach for ADAR called Real Emphasis and Fake Dispersion (REFD) strategy. In the Real Emphasis training stage, due to the excellent performance of the current binary classification studies, we continue to adopt a well-established binary classification strategy and incorporate OC-Softmax [ 19 ] to converge the real decision boundary. At this stage, our primary objective is only to detect the real class, leaving a large isolate feature space for fake classes and unknown fake classes to the second stage. Then, in the Fake Dispersion training stage, our goal is to detect unknown fake classes while classifying ID fake ones. However, the typical cross-entropy with softmax probability often exhibits the issue of overconfidence in classification logits score. This can pose challenges in distinguishing between ID and OOD instances, especially in the application of post-hoc OOD methods, both ID and OOD data may have similarly high output classification logits. To address this,
+we take advantage of Regmixup strategy [ 20 ] . The Regmixup strategy exhibits strong generalizability inherited from mixup [ 21 ] and maximizes a soft proxy to entropy. This effectively addresses the problem of overconfidence and proves to be effective in post-hoc OOD methods. To detect the unknown audio deepfake algorithm in stage two, we investigated the state-of-the-art post-hoc score based OOD detectors applying in the field of ADAR. Furthermore, we propose a new OOD detection method Novel Similarity Detection (NSD) to effectively detect the OOD data.
+NSD determine OOD data by considering both feature similarity and classifier logits, addressing the overconfidence issue associated with a singular viewpoint. This approach helps reduce overconfidence in far-OOD regions while achieving fine-grained detection. 
+ The main contributions of this work are as follows: 
+ • 
+ We propose Real Emphasis and Fake Dispersion strategy, which can effectively classifying ID samples and detecting OOD samples. 
+ • 
+ We investigated the state-of-the-art post-hoc OOD detectors in the field of ADAR and propose NSD OOD detection method to effective detect the unknown audio deepfake algorithm. 
+ • 
+ Our proposed method was experimentally evaluated on ADD2023T3, demonstrating state-of-the-art performance with an F 1 {F}_{1} -score of 86.83% in single system. 
+ 2 Method 
+ The REFD method is shown in Figure 1 . In real emphasis training stage, we concentrate on real class learning and take advantage of OC-Softmax to learn a compact real boundary. In the fake dispersion stage, the RegMixup strategy is employed to learn a soft logits, addressing the overconfidence issue associated with cross-entropy. Lastly, during the inference phase, we employ the real emphasis pre-trained model to detect the genuine class, while the remaining audio is classified using the fake dispersion model. NSD is proposed to to detect the unknown fake class. 
+ 2.1 Backbone 
+ W2V2-AASIST [ 22 ] shows the state-of-the-art performance in the field of audio deepfake detection. However, during training, fine-tuning W2V2 incurs a massive computational burden, especially when applying different losses to the backend features and logits, making training more challenging. Therefore, we freeze the weight of W2V2 and extract the hidden states of W2V2 offline 1 1 
+ 1 
+ https://huggingface.co/facebook/wav2vec2-xls-r-300m as features and input into the backend AASIST, facilitating training with various losses. 
+ 2.2 Real Emphasis Training Stage 
+ In real emphasis training stage, all training utterances participate in the training process, with real audio labeled as 0 and fake audio labeled as 1. A two-class prediction logits output (real and fake) is applied in this stage. In this stage, we take advantage of OC-Softmax to learn a one-class compact real decision boundary. Specically, the loss of real emphasis stage ( L R ​ E {L}_{RE} ) is defined as follow: 
+ ℒ R ​ E = 1 N ​ ∑ i = 1 N log ⁡ ( 1 + e α ⁡ ( m y i − 𝒘 ^ 0 ​ 𝒙 ^ i ) ​ ( − 1 ) y i ) , \mathcal{L}_{RE}=\frac{1}{N}\sum_{i=1}^{N}\log\left(1+e^{\alpha\left(m_{y_{i}}-\hat{\bm{w}}_{0}\hat{\bm{x}}_{i}\right)(-1)^{y_{i}}}\right), 
+ (1) 
+ where x i {x}_{i} ∈ \in R D {R}^{D} and y i y_{i} ∈ { 0 , 1 } \in\{0,1\} , w 0 w_{0} denotes the embedding direction of the target class. The output feature x x of AASIST and weight vector w 0 w_{0} will be normalized and calculate the cosine similarity of the feature and the target direction. Then, two margins m 0 m_{0} ∈ { − 1 , 1 } \in\{-1,1\} , m 1 m_{1} ∈ { − 1 , 1 } \in\{-1,1\} are used to constrain the angle between x x and w 0 w_{0} , denoted as θ i \theta_{i} . When y i = 0 y_{i}=0 , m 0 m_{0} is utilized to ensure θ i \theta_{i} is smaller than arccos ⁡ m 0 \arccos m_{0} , while for y i = 1 y_{i}=1 , m 1 m_{1} is employed to ensure θ i \theta_{i} is larger than arccos ⁡ m 1 \arccos m_{1} . In inference stage, the angle similarity between x x and w 0 w_{0} is used to determine whether the audio is real or fake. 
+ 2.3 Fake dispersion Training Stage 
+ The Mixup strategy, built on the fundamentals of Vicinal Risk Minimization (VRM) [ 23 ] , synthesizes new samples near the ID distribution. This enrichment of the ID data distribution makes an angular bias between ID and OOD samples. However, employing the Mixup strategy alone often results in limited cross-validation effectiveness and high-entropy behavior [ 20 ] . Thus, RegMixup [ 20 ] is proposed which have large cross-validated and maximize a soft proxy to entropy, which is simply combines Empirical Risk Minimization (ERM) [ 24 ] and VRM. The loss of the fake dispersion stage ( L F ​ D {L}_{FD} ) with Regmixup strategy is defined as follows: 
+ ℒ F ​ D = CE ⁡ ( p θ ​ ( 𝐲 ^ ∣ 𝐱 i ) , 𝐲 i ) + η ​ CE ⁡ ( p θ ​ ( 𝐲 ^ ∣ 𝐱 ¯ i ) , 𝐲 ¯ i ) , \mathcal{L}_{FD}=\operatorname{CE}\left(p_{\theta}\left(\hat{\mathbf{y}}\mid\mathbf{x}_{i}\right),\mathbf{y}_{i}\right)+\eta\operatorname{CE}\left(p_{\theta}\left(\hat{\mathbf{y}}\mid\overline{\mathbf{x}}_{i}\right),\overline{\mathbf{y}}_{i}\right), 
+ (2) 
+ where for each sample x i {x}_{i} in a batch, another sample, x j {x}_{j} is randomly selected from the same batch to obtain the interpolated 𝐱 ¯ i \overline{\mathbf{x}}_{i} and 𝐲 ¯ i \overline{\mathbf{y}}_{i} , CE denotes the standard cross-entropy loss. 
+ Table 1: F 1 {F}_{1} -score (%) for different methods in fake dispersion inference stage. 
+ Method 
+ OOD 
+ 0 
+ 1 
+ 2 
+ 3 
+ 4 
+ 5 
+ 6 
+ 7 
+ AVG 
+ CE (w/o DA) 
+ - 
+ 91.73 
+ 52.08 
+ 59.07 
+ 89.90 
+ 96.06 
+ 95.85 
+ 88.16 
+ 0 
+ 71.61 
+ CE 
+ - 
+ 91.73 
+ 69.15 
+ 69.98 
+ 96.87 
+ 98.98 
+ 98.40 
+ 93.92 
+ 0 
+ 77.38 
+ CE 
+ NSD 
+ 91.73 
+ 67.46 
+ 66.98 
+ 98.11 
+ 98.29 
+ 99.59 
+ 86.86 
+ 43.50 
+ 81.57 
+ CE + Regmixup 
+ - 
+ 91.73 
+ 69.08 
+ 79.02 
+ 97.41 
+ 99.33 
+ 96.72 
+ 94.28 
+ 0 
+ 78.45 
+ CE + Regmixup 
+ NSD 
+ 91.73 
+ 75.45 
+ 82.32 
+ 98.28 
+ 97.35 
+ 98.42 
+ 92.99 
+ 58.10 
+ 86.83 
+ 2.4 Inference Stage 
+ In inference stage, we propose a new OOD detector called Novel Similarity Detection (NSD) to detect novel deepfake algorithm in fake dispersion inference stage. In this stage, lets X m = ( x 1 , … ​ x m ) {X}_{m}=({x}_{1},...{x}_{m}) denotes the entire set of m m training samples, Y n = ( y 1 , … ​ y n ) {Y}_{n}=({y}_{1},...{y}_{n}) represents the test samples. We can use the pre-trained fake dispersion model ϕ \phi to get the trained feature 𝐙 m = ϕ ⁡ ( ‖ 𝐗 m ‖ 2 ) \mathbf{Z}_{m}=\phi(||\mathbf{X}_{m}||_{2}) , test feature 𝐓 n = ϕ ⁡ ( ‖ 𝐘 n ‖ 2 ) \mathbf{T}_{n}=\phi(||\mathbf{Y}_{n}||_{2}) , and their logits L m {L}_{m} and L n {L}_{n} . NSD treats the entire training domain features as a known class, calculating the cosine similarity between the test domain and training domain features pairwise to obtain the n × m n\times m dimensional similarity matrix S N ​ S ​ D {S}_{NSD} . However, the normalization used in the calculation of similarity matrix eliminates the dimensional scale of the values, resulting in limited fine-grained detection. Thus, we use the classification logits to scale similarity matrix at the fine-grained value level. The NSD score calculation is as follows: 
+ S N ​ S ​ D = T n ∗ E ​ n ​ e ​ r ​ g ​ y ​ ( L n ) ⋅ Z m ∗ E ​ n ​ e ​ r ​ g ​ y ​ ( L m ) , {S}_{NSD}={T}_{n}*Energy({L}_{n})\cdot{Z}_{m}*Energy({L}_{m}), 
+ (3) 
+ where Energy [ 25 ] is the confidence scaling score used to smooth the original logits and enhance generality. We calculate the mean along the m m dimensions to obtain the score matrix for n n test samples. Samples with scores smaller than the threshold will be identified as novel deepfake algorithms. 
+ 3 Experimental Setup 
+ 3.1 Dataset 
+ All experiments are conducted on the ADD2023T3 dataset. The ADD2023T3 training set comprises 22,397 audio samples, the development set consists of 8,400 audio samples, both including genuine (class 0) and samples from six different generated methods (class 1-6). The test set contains 79,740 audio samples, including genuine and samples from seven different forgery methods, with one method (class 7) being unknown to the training and development domains. 
+ Table 2: Number of classes in subsets of ADD2023T3. 
+ subset 
+ 0 
+ 1 
+ 2 
+ 3 
+ 4 
+ 5 
+ 6 
+ 7 
+ total 
+ train 
+ 3200 
+ 3200 
+ 3197 
+ 3200 
+ 3200 
+ 3200 
+ 3200 
+ 0 
+ 22397 
+ dev 
+ 1200 
+ 1200 
+ 1200 
+ 1200 
+ 1200 
+ 1200 
+ 1200 
+ 0 
+ 8400 
+ eval 
+ 9512 
+ 10474 
+ 7169 
+ 10461 
+ 10391 
+ 10507 
+ 10507 
+ 10469 
+ 79740 
+ 3.2 Implementation Details 
+ To alleviate the domain covariate shift between the training and testing domains, we applied the offline data augmentation to the training samples using MUSAN [ 26 ] and RIR [ 27 ] for five condition. Thus, in the training stage of the REFD method, the training set comprises 111,985 samples in the real emphasis stage and 95,985 in the fake dispersion stage. The development dataset is also augmented to 42,000 samples to simulate a complex scenario. The best-performing model on the development set will be selected for the inference model. The Adam optimizer is adopted with β 1 = 0.9 \beta_{1}=0.9 , β 2 = 0.999 \beta_{2}=0.999 , ε \varepsilon = 10 − 8 10^{-8} and weight decay is 10 − 4 10^{-4} . We train all of the models for 30 epochs. The learning rate is initialized as 10 − 5 10^{-5} and halved every 5 epochs. 
+ 4 Results and Analyze 
+ 4.1 Results in real emphasis inference stage 
+ In this stage, we focus on the classification accuracy of the real class. We conduct experiments using two backbone, LCNN and AASIST. Experimental results are presented in Table 3 . Regarding backbone, AASIST demonstrated improvements of 3.89%, 4.21%, and 5.99% F 1 {F}_{1} -score over LCNN in the CE, OC-Softmax, and OC-Softmax-T scenarios, respectively. This led us to adopt AASIST as the backbone network for subsequent experiments. For the loss function, when employing OC-Softmax in inference stage, the threshold will be set to zero. In the case of OC-Softmax-T, we consider only samples with a sufficiently high level of authenticity to be classified as real; the rest are categorized as fake (either existing fake or novel fake). Thus, we set a tight threshold of 0.98 for OC-Softmax-T. Experimental results indicate that F 1 {F}_{1} -score for W2V2-AASIST with OC-Softmax-T increased by 13.94% and 6.63% compared to CE and OC-Softmax, respectively. 
+ Table 3: F 1 {F}_{1} -score (%) for the real class in inference phase. CE denotes the original cross-entropy, OC-Softmax-T stands for applying a tight threshold after OC-Softmax. 
+ Model 
+ CE 
+ OC-Softmax 
+ OC-Softmax-T 
+ W2V2-LCNN [ 28 ] 
+ 73.90 
+ 80.89 
+ 85.74 
+ W2V2-AASIST [ 22 ] 
+ 77.79 
+ 85.10 
+ 91.73 
+ Table 4: F 1 {F}_{1} -score (%) for different OOD detector in inference stage. 
+ OOD 
+ 0 
+ 1 
+ 2 
+ 3 
+ 4 
+ 5 
+ 6 
+ 7 
+ AVG 
+ - 
+ 91.73 
+ 69.08 
+ 79.02 
+ 97.41 
+ 99.33 
+ 96.72 
+ 94.28 
+ 0 
+ 78.45 
+ MSP [ 29 ] 
+ 91.73 
+ 63.47 
+ 85.19 
+ 98.37 
+ 94.85 
+ 97.96 
+ 80.97 
+ 39.45 
+ 81.50 
+ MaxLogit [ 30 ] 
+ 91.73 
+ 72.95 
+ 83.13 
+ 98.67 
+ 97.86 
+ 98.45 
+ 89.58 
+ 44.30 
+ 84.58 
+ Energy [ 25 ] 
+ 91.73 
+ 73.49 
+ 81.26 
+ 98.28 
+ 96.15 
+ 98.45 
+ 87.78 
+ 47.56 
+ 84.34 
+ KNN [ 31 ] 
+ 91.73 
+ 69.99 
+ 83.26 
+ 98.21 
+ 99.09 
+ 97.44 
+ 91.25 
+ 38.12 
+ 83.64 
+ Mahalanobis [ 32 ] 
+ 91.73 
+ 64.50 
+ 83.06 
+ 98.31 
+ 98.76 
+ 97.89 
+ 91.03 
+ 45.60 
+ 83.86 
+ NNGuide [ 33 ] 
+ 91.73 
+ 72.44 
+ 82.86 
+ 98.30 
+ 97.49 
+ 98.08 
+ 89.36 
+ 50.05 
+ 85.04 
+ Relation [ 34 ] 
+ 91.73 
+ 70.23 
+ 86.41 
+ 97.94 
+ 96.12 
+ 97.19 
+ 90.38 
+ 51.23 
+ 85.15 
+ NSD 
+ 91.73 
+ 75.45 
+ 82.32 
+ 98.28 
+ 97.35 
+ 98.42 
+ 92.99 
+ 58.10 
+ 86.83 
+ 4.2 Results in fake dispersion inference stage 
+ After inferring real audio in the real emphasis inference stage, the remaining utterances are fed into the pre-trained fake dispersion model to classify into fake categories. For our proposed OOD detector NSD, we determine the threshold for identifying OOD fake classes by setting a threshold on the output logits. The determination of the threshold will be based on achieving the highest average F 1 {F}_{1} -score. Samples with a score below the threshold will be classified as OOD, while those with a score above the threshold will be classified as ID. For samples classified as ID, the logits will undergo an argmax operation to determine the specific class within the ID category. 
+ The experimental results are shown in the Table 1 . In the case of standard CE, NSD method achieves an F 1 {F}_{1} -score of 43.50% for class 7, resulting in an overall F 1 {F}_{1} -score improvement of 4.19%. Regarding the Regmixup method, although the overall F 1 {F}_{1} -score increases by only 1.07% without using NSD, a notable improvement is observed with the application of the NSD method, particularly for OOD class 7, where the score rises to 58.10%. This results in an overall F 1 {F}_{1} -score improvement of 8.38% compared to non-OOD method, surpassing the 4.19% improvement achieved with the original CE without the Regmixup strategy. Furthermore, this also implies that the distribution of features and logits obtained through Regmixup strategy are more distinguishable between ID and OOD, rendering it more suitable for the application of post-hoc scored-based OOD methods. 
+ Figure 2: F 1 {F}_{1} -score (%) comparison between one-stage and dual-stage method. 
+ 4.3 Results for different OOD detectors 
+ We compared our proposed NSD OOD detector to the state-of-the-art OOD method in Table 4 . MSP, MaxLogit and Energy are OOD detection methods based on logits scores, while KNN and Mahalanobis are feature distance-based OOD detectors. Relation and NNGuide represent the latest score-based OOD detectors, incorporating both features and logits to jointly establish the OOD threshold. From the results, it can be observed that the final average F 1 {F}_{1} -score is positively correlated with the scores of OOD classes. Furthermore, relying solely on logits or features to determine the threshold for OOD class does not yield satisfactory results in the field of ADAR. In recent studies, methods like NNGuide and Relation consider both features and logits. NNGuide builds clusters for each ID class based on KNN and determines the threshold by calculating the distance from a test sample to the training cluster. Similarly, Relation calculates the graph relation value for ID classes. Such methods perform well in vision tasks where different ID classes exhibit distinct characteristics. However, in the ADAR domain, variations among different ID classes are often subtle, such as variations in artifact positions. Especially in ADD2023T3, the test set includes noise and other disturbances, making ID differentiation challenging. To address this, we propose the NSD approach, treating all ID categories in the training set as a single category and considering both feature and logits for angle similarity assessment. Experimental results indicate that NSD achieves the highest OOD class F 1 {F}_{1} -score at 58.10% and achieve the highest average F 1 {F}_{1} -score at 86.83%. 
+ 4.4 Compared to one-stage approach 
+ To validate the effective of the dual-stage approach, we also utilized the CE with Regmixup strategy for overall one-stage training including classes 0-6. During inference, predictions were made directly for classes 0-6, and the NSD method was employed to predict OOD class 7. The experimental results are presented in the Figure 2 , highlighting the superior performance of dual-stage method, particularly in the real and OOD classes. In our dual-stage approach REFD, during the real emphasis stage, the classifier concentrate on the differences between real and fake, facilitating the identification of genuine samples. For OOD detection, in the one-stage method, real samples are mixed with ID categories, resulting in a threshold that differs from the fake dispersion stage in the dual-stage approach. This makes it challenging to choose one threshold to distinguish between ID and OOD classes. 
+ 4.5 Compared to state-of-the-art methods 
+ Table 5 present the F 1 {F}_{1} -score of our proposed REFD strategy compared with the top-3 performing methods in ADD2023 Track3: D01 [ 14 ] . D02 [ 15 ] , D03 [ 17 ] . As the final scores involve multi-system integration, we also compared the scores of single systems, with individual system results derived from the highest result before score fusion. The results demonstrate that our proposed REFD achieved the highest F 1 {F}_{1} -score among single systems. 
+ Table 5: F 1 {F}_{1} -score (%) compared to state-of-the-art methods. 
+ Method 
+ D01 
+ D02 
+ D03 
+ REFD 
+ single system 
+ 85.78 
+ 78.80 
+ 75.41 
+ 86.83 
+ final result 
+ 89.63 
+ 83.12 
+ 75.41 
+ 86.83 
+ 5 Conclusion 
+ This paper propose a dual-stage approach REFD to address the challenge of ADAR. In real emphasis stage, we employ OC-Softmax to identify genuine samples. In fake dispersion stage, we utilize CE with regmixup strategy. This enables us to classify fake samples while generating smooth logits scores, facilitating the application of post-hoc OOD algorithms. Lastly, we investigate state-of-the-art OOD algorithms and propose NSD method, a novel OOD method to detect novel deepfake algorithm. Future work will focus on optimizing the ID feature space by representation learning during the fake dispersion training stage to widen the distribution gap between ID and OOD. 
+ 6 Acknowledgements 
+ This work is supported by the National Natural Science Foundation of China (NSFC) (No.62101553, No.62306316, No.U21B20210, No. 62201571) and in part by the Fundamental Research Funds for the Central Universities under Grant CUC23GZ016. 
+ References 
+ [1] 
+X. Tan, J. Chen, H. Liu, J. Cong, C. Zhang, Y. Liu, X. Wang, Y. Leng, Y. Yi,
+L. He et al. , “Naturalspeech: End-to-end text to speech synthesis
+with human-level quality,” arXiv preprint arXiv:2205.04421 , 2022.
+ [2] 
+C. Wang, S. Chen, Y. Wu, Z. Zhang, L. Zhou, S. Liu, Z. Chen, Y. Liu, H. Wang,
+J. Li et al. , “Neural codec language models are zero-shot text to
+speech synthesizers,” arXiv preprint arXiv:2301.02111 , 2023.
+ [3] 
+C. H. Chan, K. Qian, Y. Zhang, and M. Hasegawa-Johnson, “Speechsplit2. 0:
+Unsupervised speech disentanglement for voice conversion without tuning
+autoencoder bottlenecks,” in Proceedings of ICASSP , 2022, pp.
+6332–6336.
+ [4] 
+H. Tang, X. Zhang, J. Wang, N. Cheng, and J. Xiao, “Avqvc: One-shot voice
+conversion by vector quantization with applying contrastive learning,” in
+ Proceedings of ICASSP . IEEE,
+2022, pp. 4613–4617.
+ [5] 
+A. Nautsch, X. Wang, N. Evans, T. H. Kinnunen, V. Vestman, M. Todisco,
+H. Delgado, M. Sahidullah, J. Yamagishi, and K. A. Lee, “Asvspoof 2019:
+spoofing countermeasures for the detection of synthesized, converted and
+replayed speech,” IEEE Transactions on Biometrics, Behavior, and
+Identity Science , vol. 3, no. 2, pp. 252–265, 2021.
+ [6] 
+X. Liu, X. Wang, M. Sahidullah, J. Patino, H. Delgado, T. Kinnunen, M. Todisco,
+J. Yamagishi, N. Evans, A. Nautsch et al. , “Asvspoof 2021: Towards
+spoofed and deepfake speech detection in the wild,” IEEE/ACM
+Transactions on Audio, Speech, and Language Processing , 2023.
+ [7] 
+J. Yi, R. Fu, J. Tao, S. Nie, H. Ma, C. Wang, T. Wang, Z. Tian, Y. Bai, C. Fan
+ et al. , “Add 2022: the first audio deep synthesis detection
+challenge,” in Proceedings of ICASSP . IEEE, 2022, pp. 9216–9220.
+ [8] 
+J. Yi, J. Tao, R. Fu, X. Yan, C. Wang, T. Wang, C. Zhang, X. Zhang, Z. Yan,
+Y. Ren, L. Xu, J. Zhou, H. Gu, Z. Wen, S. Liang, Z. Lian, and H. Li, “Add
+2023: the second audio deepfake detection challenge,” ADD 2023: the
+Second Audio Deepfake Detection Challenge, accepted by IJCAI 2023 Workshop on
+Deepfake Audio Detection and Analysis , 2023.
+ [9] 
+Y. Xie, H. Cheng, Y. Wang, and L. Ye, “Learning A Self-Supervised
+Domain-Invariant Feature Representation for Generalized Audio Deepfake
+Detection,” in Proc. INTERSPEECH 2023 , 2023, pp. 2808–2812.
+ [10] 
+Y. Zhang, J. Lu, Z. Shang, W. Wang, and P. Zhang, “Improving short utterance
+anti-spoofing with aasist2,” arXiv preprint arXiv:2309.08279 , 2023.
+ [11] 
+X. Yan, J. Yi, J. Tao, C. Wang, H. Ma, T. Wang, S. Wang, and R. Fu, “An
+initial investigation for detecting vocoder fingerprints of fake audio,” in
+ Proceedings of the 1st International Workshop on Deepfake Detection for
+Audio Multimedia , 2022, pp. 61–68.
+ [12] 
+T. Zhu, X. Wang, X. Qin, and M. Li, “Source tracing: Detecting voice
+spoofing,” in 2022 Asia-Pacific Signal and Information Processing
+Association Annual Summit and Conference (APSIPA ASC) . IEEE, 2022, pp. 216–220.
+ [13] 
+C. Sun, S. Jia, S. Hou, and S. Lyu, “Ai-synthesized voice detection using
+neural vocoder artifacts,” in Proceedings of the IEEE/CVF Conference
+on Computer Vision and Pattern Recognition , 2023, pp. 904–912.
+ [14] 
+J. Lu, Y. Zhang, Z. Li, Z. Shang, W. Wang, and P. Zhang, “Detecting unknown
+speech spoofing algorithms with nearest neighbors,” ADD 2023: the
+Second Audio Deepfake Detection Challenge, accepted by IJCAI 2023 Workshop on
+Deepfake Audio Detection and Analysis , 2023.
+ [15] 
+X. Qin, X. Wang, Y. Chen, Q. Meng, and M. Li, “From speaker verification to
+deepfake algorithm recognition: Our learned lessons from add2023 track3,”
+ ADD 2023: the Second Audio Deepfake Detection Challenge, accepted by
+IJCAI 2023 Workshop on Deepfake Audio Detection and Analysis , 2023.
+ [16] 
+Y. Tian, Y. Chen, Y. Tang, and B. Fu, “Deepfake algorithm recognition through
+multi-model fusion based on manifold measure,” ADD 2023: the Second
+Audio Deepfake Detection Challenge, accepted by IJCAI 2023 Workshop on
+Deepfake Audio Detection and Analysis , 2023.
+ [17] 
+X.-M. Zeng, J.-T. Zhang, K. Li, Z.-L. Liu, W.-L. Xie, and Y. Song, “Deepfake
+algorithm recognition system with augmented data for add 2023 challenge,”
+ ADD 2023: the Second Audio Deepfake Detection Challenge, accepted by
+IJCAI 2023 Workshop on Deepfake Audio Detection and Analysis , 2023.
+ [18] 
+Z. Wang, Q. Wang, J. Yao, and L. Xie, “The npu-aslp system for deepfake
+algorithm recognition in add 2023 challenge,” ADD 2023: the Second
+Audio Deepfake Detection Challenge, accepted by IJCAI 2023 Workshop on
+Deepfake Audio Detection and Analysis , 2023.
+ [19] 
+Y. Zhang, F. Jiang, and Z. Duan, “One-class learning towards synthetic voice
+spoofing detection,” IEEE Signal Processing Letters , vol. 28, pp.
+937–941, 2021.
+ [20] 
+F. Pinto, H. Yang, S. N. Lim, P. Torr, and P. Dokania, “Using mixup as a
+regularizer can surprisingly improve accuracy & out-of-distribution
+robustness,” Advances in Neural Information Processing Systems ,
+vol. 35, pp. 14 608–14 622, 2022.
+ [21] 
+H. Zhang, M. Cisse, Y. N. Dauphin, and D. Lopez-Paz, “mixup: Beyond empirical
+risk minimization,” arXiv preprint arXiv:1710.09412 , 2017.
+ [22] 
+H. Tak, M. Todisco, X. Wang, J.-w. Jung, J. Yamagishi, and N. Evans,
+“Automatic speaker verification spoofing and deepfake detection using
+wav2vec 2.0 and data augmentation,” arXiv preprint arXiv:2202.12233 ,
+2022.
+ [23] 
+O. Chapelle, J. Weston, L. Bottou, and V. Vapnik, “Vicinal risk
+minimization,” Advances in neural information processing systems ,
+vol. 13, 2000.
+ [24] 
+V. Vapnik, “Principles of risk minimization for learning theory,”
+ Advances in neural information processing systems , vol. 4, 1991.
+ [25] 
+W. Liu, X. Wang, J. Owens, and Y. Li, “Energy-based out-of-distribution
+detection,” Advances in neural information processing systems ,
+vol. 33, pp. 21 464–21 475, 2020.
+ [26] 
+S. David, C. Guoguo, and P. Daniel, “Musan: A music, speech, and noise
+corpus,” arXiv:1510.08484 , 2015.
+ [27] 
+K. Tom, P. Vijayaditya, P. Daniel, S. Michael L, and K. Sanjeev, “A study on
+data augmentation of reverberant speech for robust speech recognition.” in
+ Proceedings of the ICASSP , 2017, p. 5220–5224.
+ [28] 
+G. Lavrentyeva, A. Novoselov, S., M. Volkova, A. Gorlanov, and A. Kozlov, “Stc
+antispoofing systems for the asvspoof2019 challenge,” arXiv preprint
+arXiv:1904.05576 , 2019.
+ [29] 
+D. Hendrycks and K. Gimpel, “A baseline for detecting misclassified and
+out-of-distribution examples in neural networks,” arXiv preprint
+arXiv:1610.02136 , 2016.
+ [30] 
+D. Hendrycks, S. Basart, M. Mazeika, A. Zou, J. Kwon, M. Mostajabi,
+J. Steinhardt, and D. Song, “Scaling out-of-distribution detection for
+real-world settings,” arXiv preprint arXiv:1911.11132 , 2019.
+ [31] 
+Y. Sun, Y. Ming, X. Zhu, and Y. Li, “Out-of-distribution detection with deep
+nearest neighbors,” in International Conference on Machine
+Learning . PMLR, 2022, pp.
+20 827–20 840.
+ [32] 
+K. Lee, K. Lee, H. Lee, and J. Shin, “A simple unified framework for detecting
+out-of-distribution samples and adversarial attacks,” Advances in
+neural information processing systems , vol. 31, 2018.
+ [33] 
+J. Park, Y. G. Jung, and A. B. J. Teoh, “Nearest neighbor guidance for
+out-of-distribution detection,” in Proceedings of the IEEE/CVF
+International Conference on Computer Vision , 2023, pp. 1686–1695.
+ [34] 
+J.-H. Kim, S. Yun, and H. O. Song, “Neural relation graph: A unified framework
+for identifying label noise and outlier data,” Advances in Neural
+Information Processing Systems , vol. 36, 2024.
+ Experimental support, please
+ view the build logs 
+ for errors. Generated by
+ L
+ A 
+ T
+ E 
+ xml 
+ .
+ Instructions for reporting errors 
+ We are continuing to improve HTML versions of papers, and your feedback helps enhance accessibility and mobile
+ support. To report errors in the HTML that will help us improve conversion and rendering, choose any of the
+ methods listed below: 
+ Click the "Report Issue" ( 
+ ) button, located in the page header. 
+ Tip: You can select the relevant text first, to include it in your report. 
+ Our team has already identified the following issues . We appreciate your time reviewing and reporting rendering errors we
+ may not have found yet. Your efforts will help us improve the HTML versions for all readers, because disability
+ should not be a barrier to accessing research. Thank you for your continued support in championing open access for
+ all. 
+ Have a free development cycle? Help support accessibility at arXiv! Our collaborators at LaTeXML maintain a list of packages that need conversion , and welcome developer contributions . 
+ We gratefully acknowledge support from our major funders ,
+ member institutions , ,
+ and all contributors.
+ About · 
+ Help · 
+ Contact · 
+ Subscribe · 
+ Copyright · 
+ Privacy · 
+ Accessibility · 
+ Operational Status (opens in new tab) 

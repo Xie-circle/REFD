@@ -27,9 +27,9 @@ def initParams():
     # Data folder prepare
     parser.add_argument("-a", "--access_type", type=str, help="LA or PA", default='LA')
     parser.add_argument("-d", "--path_to_database", type=str, help="dataset path",
-                        default='/data2/xyk/ADD2023t3/')
+                        default='D:/REFD/data/ADD2023T3/')
     parser.add_argument("-f", "--path_to_features", type=str, help="features path",
-                        default='/data2/xyk/ADD2023t3/preprocess_xls-r-5-2')
+                        default='D:/REFD/data/ADD2023T3/preprocess_xls-r-5-2')
 
     parser.add_argument("-o", "--out_fold", type=str, help="output folder", required=False, default='./models/try/')
 
@@ -58,7 +58,7 @@ def initParams():
     parser.add_argument('--beta_1', type=float, default=0.9, help="bata_1 for Adam")
     parser.add_argument('--beta_2', type=float, default=0.999, help="beta_2 for Adam")
     parser.add_argument('--eps', type=float, default=1e-8, help="epsilon for Adam")
-    parser.add_argument("--gpu", type=str, help="GPU index", default="1")
+    parser.add_argument("--gpu", type=str, help="GPU index", default="0")
     parser.add_argument('--num_workers', type=int, default=8, help="number of workers")
 
     parser.add_argument('--base_loss', type=str, default="ce", choices=["ce", "bce"],
